@@ -136,6 +136,53 @@ test("@next mon → same as 다음주 월", function()
     assertEq(d.day, 27, "day")
 end)
 
+-- ========== 시간만 ==========
+
+test("@3pm → today 15:00 (not passed yet)", function()
+    local r = parser.parse("회의 @3pm", FIXED_NOW)
+    local d = dateFields(r.date)
+    assertEq(d.year, 2026); assertEq(d.month, 4); assertEq(d.day, 20)
+    assertEq(d.hour, 15); assertEq(d.min, 0)
+    assertEq(r.allday, false, "allday")
+end)
+
+test("@9am → next day (already passed at 10am)", function()
+    local r = parser.parse("회의 @9am", FIXED_NOW)
+    local d = dateFields(r.date)
+    assertEq(d.day, 21, "day should be tomorrow")
+    assertEq(d.hour, 9, "hour")
+end)
+
+test("@15:00 → today 15:00", function()
+    local r = parser.parse("회의 @15:00", FIXED_NOW)
+    local d = dateFields(r.date)
+    assertEq(d.day, 20); assertEq(d.hour, 15); assertEq(d.min, 0)
+end)
+
+test("@3:30pm → today 15:30", function()
+    local r = parser.parse("회의 @3:30pm", FIXED_NOW)
+    local d = dateFields(r.date)
+    assertEq(d.hour, 15); assertEq(d.min, 30)
+end)
+
+test("@3시 → today or tomorrow 03:00", function()
+    local r = parser.parse("회의 @3시", FIXED_NOW)
+    local d = dateFields(r.date)
+    assertEq(d.day, 21); assertEq(d.hour, 3); assertEq(d.min, 0)
+end)
+
+test("@오후 3시 → today 15:00", function()
+    local r = parser.parse("회의 @오후 3시", FIXED_NOW)
+    local d = dateFields(r.date)
+    assertEq(d.day, 20); assertEq(d.hour, 15)
+end)
+
+test("@오전 9시 → next day (9am already passed)", function()
+    local r = parser.parse("회의 @오전 9시", FIXED_NOW)
+    local d = dateFields(r.date)
+    assertEq(d.day, 21); assertEq(d.hour, 9)
+end)
+
 print()
 print(string.format("passed: %d, failed: %d", passed, failed))
 if failed > 0 then os.exit(1) end

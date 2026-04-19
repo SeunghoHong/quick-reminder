@@ -44,6 +44,76 @@ local function nextWeekDow(now, targetWday)
     return mondayNextWeek + offsetFromMon * 86400
 end
 
+local function matchKoreanTime(prefix, s)
+    local pat = prefix and ("^" .. prefix .. "%s*(%d+)시%s*(%d+)분$") or "^(%d+)시%s*(%d+)분$"
+    local h, m = s:match(pat)
+    if h then return tonumber(h), tonumber(m) end
+    pat = prefix and ("^" .. prefix .. "%s*(%d+)시$") or "^(%d+)시$"
+    h = s:match(pat)
+    if h then return tonumber(h), 0 end
+    return nil, nil
+end
+
+local function parseTime(s)
+    s = s:gsub("%s+", " "):gsub("^%s+", ""):gsub("%s+$", "")
+
+    local h, m, ampm
+
+    -- Korean: 오전 H시 [M분]
+    h, m = matchKoreanTime("오전", s)
+    if h then
+        if h == 12 then h = 0 end
+        return { hour = h, min = m }
+    end
+
+    -- Korean: 오후 H시 [M분]
+    h, m = matchKoreanTime("오후", s)
+    if h then
+        if h < 12 then h = h + 12 end
+        return { hour = h, min = m }
+    end
+
+    -- Korean: H시 [M분]
+    h, m = matchKoreanTime(nil, s)
+    if h then
+        return { hour = h, min = m }
+    end
+
+    -- Numeric: HH:MM [am/pm]
+    h, m, ampm = s:match("^(%d+):(%d+)%s*([apAP]?[mM]?)$")
+    if h then
+        h = tonumber(h); m = tonumber(m); ampm = ampm:lower()
+        if ampm == "pm" and h < 12 then h = h + 12
+        elseif ampm == "am" and h == 12 then h = 0 end
+        return { hour = h, min = m }
+    end
+
+    -- English: H[am/pm] or HH[am/pm]
+    h, ampm = s:match("^(%d+)%s*([apAP][mM])$")
+    if h then
+        h = tonumber(h); ampm = ampm:lower()
+        if ampm == "pm" and h < 12 then h = h + 12
+        elseif ampm == "am" and h == 12 then h = 0 end
+        return { hour = h, min = 0 }
+    end
+
+    return nil
+end
+
+local function setTime(ts, hour, min)
+    local t = os.date("*t", ts)
+    t.hour = hour; t.min = min; t.sec = 0
+    return os.time(t)
+end
+
+local function todayOrTomorrow(now, hour, min)
+    local candidate = setTime(now, hour, min)
+    if candidate <= now then
+        candidate = candidate + 86400
+    end
+    return candidate
+end
+
 local function parseDateExpr(dateExpr, now)
     local expr = string.lower(dateExpr)
 
@@ -64,6 +134,14 @@ local function parseDateExpr(dateExpr, now)
     local wday = DOW[expr]
     if wday then
         return { date = comingDow(now, wday), allday = true }
+    end
+
+    local time = parseTime(dateExpr)
+    if time then
+        return {
+            date = todayOrTomorrow(now, time.hour, time.min),
+            allday = false,
+        }
     end
 
     return nil
