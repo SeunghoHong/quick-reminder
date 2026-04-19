@@ -10,6 +10,8 @@ local currentLists = {}
 local currentIndex = 1
 local onSubmit = nil
 local onCancel = nil
+local escHotkey = nil
+local outsideClickTap = nil
 
 local function centerFrame()
     local screen = hs.screen.mainScreen():frame()
@@ -22,6 +24,14 @@ local function centerFrame()
 end
 
 local function closeWebview()
+    if escHotkey then
+        escHotkey:delete()
+        escHotkey = nil
+    end
+    if outsideClickTap then
+        outsideClickTap:stop()
+        outsideClickTap = nil
+    end
     if currentWebview then
         currentWebview:delete()
         currentWebview = nil
@@ -35,6 +45,11 @@ local function updateListLabel()
     currentWebview:evaluateJavaScript(string.format("window.setListName('%s')", name))
 end
 
+local function cancel()
+    closeWebview()
+    if onCancel then onCancel() end
+end
+
 local function handleMessage(msgJson)
     local ok, msg = pcall(hs.json.decode, msgJson)
     if not ok or type(msg) ~= "table" then return end
@@ -45,8 +60,7 @@ local function handleMessage(msgJson)
         closeWebview()
         if onSubmit then onSubmit(listName, text) end
     elseif msg.action == "cancel" then
-        closeWebview()
-        if onCancel then onCancel() end
+        cancel()
     elseif msg.action == "next-list" then
         if #currentLists > 0 then
             currentIndex = (currentIndex % #currentLists) + 1
@@ -94,6 +108,23 @@ function M.open(opts)
 
     currentWebview:url(url):show()
     currentWebview:hswindow():focus()
+
+    escHotkey = hs.hotkey.bind({}, "escape", cancel)
+
+    outsideClickTap = hs.eventtap.new(
+        { hs.eventtap.event.types.leftMouseDown,
+          hs.eventtap.event.types.rightMouseDown },
+        function(event)
+            if not currentWebview then return false end
+            local webFrame = currentWebview:frame()
+            local p = event:location()
+            local outside = p.x < webFrame.x or p.x > webFrame.x + webFrame.w
+                          or p.y < webFrame.y or p.y > webFrame.y + webFrame.h
+            if outside then cancel() end
+            return false
+        end
+    )
+    outsideClickTap:start()
 
     hs.timer.doAfter(0.2, function()
         if currentWebview then updateListLabel() end
