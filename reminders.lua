@@ -10,16 +10,17 @@ M._escape = escape
 function M.listLists()
     local script = [[
         tell application "Reminders"
-            set result to {}
-            repeat with l in lists
-                set end of result to name of l
-            end repeat
-            return result
+            return name of every list
         end tell
     ]]
-    local ok, out, _ = hs.osascript.applescript(script)
-    if not ok then return {} end
+    local ok, out, err = hs.osascript.applescript(script)
+    if not ok then
+        print("[quick-reminder] listLists failed:", tostring(err))
+        return {}
+    end
     if type(out) == "table" then return out end
+    if type(out) == "string" and out ~= "" then return { out } end
+    print("[quick-reminder] listLists unexpected return:", type(out), tostring(out))
     return {}
 end
 
