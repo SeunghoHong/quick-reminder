@@ -12,12 +12,12 @@ local TOAST_STYLE = {
     fillColor = { red = 22/255, green = 22/255, blue = 26/255, alpha = 0.9 },
     textColor = { white = 1, alpha = 0.98 },
     textFont = ".AppleSystemUIFont",
-    textSize = 18,
-    radius = 24,
+    textSize = 13,
+    radius = 16,
     atScreenEdge = 0,
     fadeInDuration = 0.12,
     fadeOutDuration = 0.18,
-    padding = 18,
+    padding = 10,
 }
 
 local TOAST_ERROR_STYLE = {
@@ -26,12 +26,12 @@ local TOAST_ERROR_STYLE = {
     fillColor = { red = 22/255, green = 22/255, blue = 26/255, alpha = 0.9 },
     textColor = { white = 1, alpha = 0.98 },
     textFont = ".AppleSystemUIFont",
-    textSize = 18,
-    radius = 24,
+    textSize = 13,
+    radius = 16,
     atScreenEdge = 0,
     fadeInDuration = 0.12,
     fadeOutDuration = 0.18,
-    padding = 18,
+    padding = 10,
 }
 
 local parser = require("quick-reminder.parser")
