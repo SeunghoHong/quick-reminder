@@ -10,7 +10,7 @@ local currentLists = {}
 local currentIndex = 1
 local onSubmit = nil
 local onCancel = nil
-local escHotkey = nil
+local hotkeys = {}
 local outsideClickTap = nil
 
 local function centerFrame()
@@ -24,10 +24,8 @@ local function centerFrame()
 end
 
 local function closeWebview()
-    if escHotkey then
-        escHotkey:delete()
-        escHotkey = nil
-    end
+    for _, hk in ipairs(hotkeys) do hk:delete() end
+    hotkeys = {}
     if outsideClickTap then
         outsideClickTap:stop()
         outsideClickTap = nil
@@ -48,6 +46,28 @@ end
 local function cancel()
     closeWebview()
     if onCancel then onCancel() end
+end
+
+local function submit()
+    if not currentWebview then return end
+    currentWebview:evaluateJavaScript(
+        "document.getElementById('input').value",
+        function(result)
+            local text = result or ""
+            local listName = currentLists[currentIndex]
+            closeWebview()
+            if onSubmit then onSubmit(listName, text) end
+        end
+    )
+end
+
+local function cycleList(delta)
+    if #currentLists == 0 then return end
+    currentIndex = ((currentIndex - 1 + delta) % #currentLists) + 1
+    if not currentWebview then return end
+    local name = currentLists[currentIndex] or ""
+    name = name:gsub("\\", "\\\\"):gsub("'", "\\'")
+    currentWebview:evaluateJavaScript(string.format("window.setListName('%s')", name))
 end
 
 local function handleMessage(msgJson)
@@ -109,7 +129,10 @@ function M.open(opts)
     currentWebview:url(url):show()
     currentWebview:hswindow():focus()
 
-    escHotkey = hs.hotkey.bind({}, "escape", cancel)
+    table.insert(hotkeys, hs.hotkey.bind({}, "escape", cancel))
+    table.insert(hotkeys, hs.hotkey.bind({}, "return", submit))
+    table.insert(hotkeys, hs.hotkey.bind({}, "tab", function() cycleList(1) end))
+    table.insert(hotkeys, hs.hotkey.bind({ "shift" }, "tab", function() cycleList(-1) end))
 
     outsideClickTap = hs.eventtap.new(
         { hs.eventtap.event.types.leftMouseDown,
