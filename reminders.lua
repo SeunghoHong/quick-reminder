@@ -1,34 +1,48 @@
 local M = {}
 
-local function escape(s)
+local function escapeAS(s)
     s = s:gsub("\\", "\\\\")
     s = s:gsub('"', '\\"')
     return s
 end
-M._escape = escape
+M._escape = escapeAS
 
-function M.listLists()
-    local script = [[
-        tell application "Reminders"
-            return name of every list
-        end tell
-    ]]
-    local ok, out, err = hs.osascript.applescript(script)
-    if not ok then
-        print("[quick-reminder] listLists failed:", tostring(err))
-        return {}
-    end
-    if type(out) == "table" then return out end
-    if type(out) == "string" and out ~= "" then return { out } end
-    print("[quick-reminder] listLists unexpected return:", type(out), tostring(out))
-    return {}
+-- Run an AppleScript via /usr/bin/osascript subprocess.
+-- Returns (ok, output). Writes script to a tmpfile to avoid shell escaping.
+local function runOsascript(script)
+    local tmpfile = os.tmpname()
+    local f, err = io.open(tmpfile, "w")
+    if not f then return false, err end
+    f:write(script)
+    f:close()
+
+    local output, status = hs.execute("/usr/bin/osascript '" .. tmpfile .. "' 2>&1")
+    os.remove(tmpfile)
+    return status == true, output or ""
 end
 
--- args: { list, name, date (os.time?), allday (bool) }
--- Returns: true, nil on success. false, errMsg on failure.
+function M.listLists()
+    local ok, output = runOsascript([[
+tell application "Reminders"
+    return name of every list
+end tell
+]])
+    if not ok then
+        print("[quick-reminder] listLists failed:", output)
+        return {}
+    end
+
+    local result = {}
+    for name in output:gmatch("([^,\n]+)") do
+        name = name:gsub("^%s+", ""):gsub("%s+$", "")
+        if name ~= "" then table.insert(result, name) end
+    end
+    return result
+end
+
 function M.save(args)
-    local listName = escape(args.list or "")
-    local name = escape(args.name or "")
+    local listName = escapeAS(args.list or "")
+    local name = escapeAS(args.name or "")
 
     local propsParts = { string.format('name:"%s"', name) }
 
@@ -44,16 +58,16 @@ function M.save(args)
     local props = table.concat(propsParts, ", ")
 
     local script = string.format([[
-        tell application "Reminders"
-            tell list "%s"
-                make new reminder with properties {%s}
-            end tell
-        end tell
-    ]], listName, props)
+tell application "Reminders"
+    tell list "%s"
+        make new reminder with properties {%s}
+    end tell
+end tell
+]], listName, props)
 
-    local ok, _, err = hs.osascript.applescript(script)
+    local ok, output = runOsascript(script)
     if ok then return true end
-    return false, tostring(err)
+    return false, output
 end
 
 return M
