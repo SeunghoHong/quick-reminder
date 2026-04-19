@@ -7,3 +7,6 @@
 # IDE
 .vscode/
 .idea/
+
+# Local docs (specs, plans)
+docs/
