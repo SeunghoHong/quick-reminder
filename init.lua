@@ -2,7 +2,7 @@ local M = {}
 
 local CONFIG = {
     defaultList = "Work",
-    doubleTapWindowMs = 300,
+    doubleTapWindowMs = 200,
     toastDuration = 1.2,
 }
 

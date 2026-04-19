@@ -22,10 +22,10 @@ end
 
 local function handleFlagsChanged(event)
     local flags = event:getFlags()
-    local onlyCtrl = flags.ctrl and not flags.cmd and not flags.alt
-                      and not flags.shift and not flags.fn
-    local ctrlDown = flags.ctrl == true
-    local otherModifier = flags.cmd or flags.alt or flags.shift or flags.fn
+    local onlyShift = flags.shift and not flags.cmd and not flags.alt
+                      and not flags.ctrl and not flags.fn
+    local shiftDown = flags.shift == true
+    local otherModifier = flags.cmd or flags.alt or flags.ctrl or flags.fn
 
     if otherModifier then
         resetState()
@@ -33,17 +33,17 @@ local function handleFlagsChanged(event)
     end
 
     if state == "idle" then
-        if ctrlDown and onlyCtrl then
+        if shiftDown and onlyShift then
             state = "first-down"
             armTimeout(500)
         end
     elseif state == "first-down" then
-        if not ctrlDown then
+        if not shiftDown then
             state = "first-up"
             armTimeout(windowMs)
         end
     elseif state == "first-up" then
-        if ctrlDown and onlyCtrl then
+        if shiftDown and onlyShift then
             resetState()
             if onTrigger then onTrigger() end
         end
@@ -52,13 +52,28 @@ local function handleFlagsChanged(event)
     return false
 end
 
+local function handleKeyDown(event)
+    if state ~= "idle" then
+        resetState()
+    end
+    return false
+end
+
 function M.start(cb, ms)
     onTrigger = cb
-    windowMs = ms or 300
+    windowMs = ms or 200
     if eventtap then eventtap:stop() end
     eventtap = hs.eventtap.new(
-        { hs.eventtap.event.types.flagsChanged },
-        handleFlagsChanged
+        {
+            hs.eventtap.event.types.flagsChanged,
+            hs.eventtap.event.types.keyDown,
+        },
+        function(event)
+            if event:getType() == hs.eventtap.event.types.keyDown then
+                return handleKeyDown(event)
+            end
+            return handleFlagsChanged(event)
+        end
     )
     eventtap:start()
 end
