@@ -84,6 +84,58 @@ test("@모레 → day after tomorrow, allday", function()
     assertEq(r.allday, true, "allday")
 end)
 
+-- ========== 요일 ==========
+-- FIXED_NOW = 2026-04-20 월요일
+
+test("@월 → coming Monday (a week later when today is Mon)", function()
+    local r = parser.parse("회의 @월", FIXED_NOW)
+    local d = dateFields(r.date)
+    assertEq(d.day, 27, "day")
+    assertEq(r.allday, true, "allday")
+end)
+
+test("@화 → this Tuesday", function()
+    local r = parser.parse("회의 @화", FIXED_NOW)
+    local d = dateFields(r.date)
+    assertEq(d.day, 21, "day")
+end)
+
+test("@일 → coming Sunday", function()
+    local r = parser.parse("브런치 @일", FIXED_NOW)
+    local d = dateFields(r.date)
+    assertEq(d.day, 26, "day")
+end)
+
+test("@mon → same as @월", function()
+    local r = parser.parse("meeting @mon", FIXED_NOW)
+    local d = dateFields(r.date)
+    assertEq(d.day, 27, "day")
+end)
+
+test("@fri → coming Friday", function()
+    local r = parser.parse("drink @fri", FIXED_NOW)
+    local d = dateFields(r.date)
+    assertEq(d.day, 24, "day")
+end)
+
+test("@다음주 월 → next-next Monday", function()
+    local r = parser.parse("회의 @다음주 월", FIXED_NOW)
+    local d = dateFields(r.date)
+    assertEq(d.day, 27, "day")
+end)
+
+test("@다음주 화 → next Tuesday", function()
+    local r = parser.parse("회의 @다음주 화", FIXED_NOW)
+    local d = dateFields(r.date)
+    assertEq(d.day, 28, "day")
+end)
+
+test("@next mon → same as 다음주 월", function()
+    local r = parser.parse("meeting @next mon", FIXED_NOW)
+    local d = dateFields(r.date)
+    assertEq(d.day, 27, "day")
+end)
+
 print()
 print(string.format("passed: %d, failed: %d", passed, failed))
 if failed > 0 then os.exit(1) end

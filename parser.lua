@@ -6,6 +6,17 @@ local RELATIVE_DAYS = {
     ["모레"] = 2,
 }
 
+-- os.date("*t").wday: Sunday=1, Monday=2, ..., Saturday=7
+local DOW = {
+    ["일"] = 1, ["sun"] = 1,
+    ["월"] = 2, ["mon"] = 2,
+    ["화"] = 3, ["tue"] = 3,
+    ["수"] = 4, ["wed"] = 4,
+    ["목"] = 5, ["thu"] = 5,
+    ["금"] = 6, ["fri"] = 6,
+    ["토"] = 7, ["sat"] = 7,
+}
+
 local function dayStart(ts)
     local t = os.date("*t", ts)
     t.hour = 0; t.min = 0; t.sec = 0
@@ -16,6 +27,23 @@ local function addDays(ts, n)
     return dayStart(ts) + n * 86400
 end
 
+local function comingDow(now, targetWday)
+    local today = os.date("*t", now).wday
+    local delta = (targetWday - today) % 7
+    if delta == 0 then delta = 7 end
+    return addDays(now, delta)
+end
+
+-- Returns the target weekday of the next week (Mon-based week).
+local function nextWeekDow(now, targetWday)
+    local today = os.date("*t", now).wday  -- 1=Sun ... 7=Sat
+    local daysBackToMon = (today == 1) and 6 or (today - 2)
+    local mondayThisWeek = addDays(now, -daysBackToMon)
+    local mondayNextWeek = addDays(mondayThisWeek, 7)
+    local offsetFromMon = (targetWday == 1) and 6 or (targetWday - 2)
+    return mondayNextWeek + offsetFromMon * 86400
+end
+
 local function parseDateExpr(dateExpr, now)
     local expr = string.lower(dateExpr)
 
@@ -23,6 +51,19 @@ local function parseDateExpr(dateExpr, now)
         if expr == token then
             return { date = addDays(now, offset), allday = true }
         end
+    end
+
+    local nextDow = expr:match("^다음주%s+(.+)$") or expr:match("^next%s+(.+)$")
+    if nextDow then
+        local wday = DOW[nextDow]
+        if wday then
+            return { date = nextWeekDow(now, wday), allday = true }
+        end
+    end
+
+    local wday = DOW[expr]
+    if wday then
+        return { date = comingDow(now, wday), allday = true }
     end
 
     return nil
