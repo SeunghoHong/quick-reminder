@@ -41,6 +41,49 @@ test("empty input", function()
     assertEq(r.date, nil, "date")
 end)
 
+-- ========== 상대 날짜 ==========
+
+-- 고정 now: 2026-04-20 (월요일) 10:00:00 KST
+local FIXED_NOW = os.time({year=2026, month=4, day=20, hour=10, min=0, sec=0})
+
+local function dateFields(ts)
+    return os.date("*t", ts)
+end
+
+test("@오늘 → today, allday", function()
+    local r = parser.parse("약 @오늘", FIXED_NOW)
+    assertEq(r.name, "약", "name")
+    local d = dateFields(r.date)
+    assertEq(d.year, 2026); assertEq(d.month, 4); assertEq(d.day, 20)
+    assertEq(r.allday, true, "allday")
+end)
+
+test("@today → today, allday (english)", function()
+    local r = parser.parse("pill @today", FIXED_NOW)
+    assertEq(r.name, "pill", "name")
+    assertEq(r.allday, true, "allday")
+end)
+
+test("@내일 → tomorrow, allday", function()
+    local r = parser.parse("약 @내일", FIXED_NOW)
+    local d = dateFields(r.date)
+    assertEq(d.day, 21, "day")
+    assertEq(r.allday, true, "allday")
+end)
+
+test("@tomorrow → tomorrow, allday", function()
+    local r = parser.parse("pill @tomorrow", FIXED_NOW)
+    local d = dateFields(r.date)
+    assertEq(d.day, 21, "day")
+end)
+
+test("@모레 → day after tomorrow, allday", function()
+    local r = parser.parse("약 @모레", FIXED_NOW)
+    local d = dateFields(r.date)
+    assertEq(d.day, 22, "day")
+    assertEq(r.allday, true, "allday")
+end)
+
 print()
 print(string.format("passed: %d, failed: %d", passed, failed))
 if failed > 0 then os.exit(1) end
