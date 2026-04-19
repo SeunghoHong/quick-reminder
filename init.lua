@@ -7,7 +7,7 @@ local CONFIG = {
 }
 
 local TOAST_STYLE = {
-    strokeWidth = 1.6,
+    strokeWidth = 1.2,
     strokeColor = { white = 1, alpha = 1 },
     fillColor = { red = 22/255, green = 22/255, blue = 26/255, alpha = 0.9 },
     textColor = { white = 1, alpha = 0.98 },
@@ -21,7 +21,7 @@ local TOAST_STYLE = {
 }
 
 local TOAST_ERROR_STYLE = {
-    strokeWidth = 1.6,
+    strokeWidth = 1.2,
     strokeColor = { red = 1, green = 0.35, blue = 0.35, alpha = 1 },
     fillColor = { red = 22/255, green = 22/255, blue = 26/255, alpha = 0.9 },
     textColor = { white = 1, alpha = 0.98 },
