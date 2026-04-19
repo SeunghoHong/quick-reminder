@@ -1,0 +1,9 @@
+# macOS
+.DS_Store
+
+# Hammerspoon console logs
+*.log
+
+# IDE
+.vscode/
+.idea/
