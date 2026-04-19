@@ -6,6 +6,34 @@ local CONFIG = {
     toastDuration = 1.2,
 }
 
+local TOAST_STYLE = {
+    strokeWidth = 1.6,
+    strokeColor = { white = 1, alpha = 1 },
+    fillColor = { red = 22/255, green = 22/255, blue = 26/255, alpha = 0.9 },
+    textColor = { white = 1, alpha = 0.98 },
+    textFont = ".AppleSystemUIFont",
+    textSize = 18,
+    radius = 24,
+    atScreenEdge = 0,
+    fadeInDuration = 0.12,
+    fadeOutDuration = 0.18,
+    padding = 18,
+}
+
+local TOAST_ERROR_STYLE = {
+    strokeWidth = 1.6,
+    strokeColor = { red = 1, green = 0.35, blue = 0.35, alpha = 1 },
+    fillColor = { red = 22/255, green = 22/255, blue = 26/255, alpha = 0.9 },
+    textColor = { white = 1, alpha = 0.98 },
+    textFont = ".AppleSystemUIFont",
+    textSize = 18,
+    radius = 24,
+    atScreenEdge = 0,
+    fadeInDuration = 0.12,
+    fadeOutDuration = 0.18,
+    padding = 18,
+}
+
 local parser = require("quick-reminder.parser")
 local reminders = require("quick-reminder.reminders")
 local popup = require("quick-reminder.popup")
@@ -23,12 +51,9 @@ local function onSubmit(listName, text)
     })
 
     if ok then
-        hs.alert.show("✓ " .. listName .. "에 추가됨", CONFIG.toastDuration)
+        hs.alert.show("✓ " .. listName .. "에 추가됨", TOAST_STYLE, CONFIG.toastDuration)
     else
-        hs.alert.show("✗ 저장 실패: " .. tostring(err), {
-            strokeColor = { red = 1, green = 0.3, blue = 0.3 },
-            fillColor = { red = 0.2, green = 0, blue = 0, alpha = 0.85 },
-        }, 2.0)
+        hs.alert.show("✗ 저장 실패: " .. tostring(err), TOAST_ERROR_STYLE, 2.0)
     end
 end
 
@@ -37,7 +62,7 @@ local function openPopup()
 
     local lists = reminders.listLists()
     if #lists == 0 then
-        hs.alert.show("리마인더 리스트가 없습니다", 2.0)
+        hs.alert.show("리마인더 리스트가 없습니다", TOAST_ERROR_STYLE, 2.0)
         return
     end
 
@@ -52,7 +77,8 @@ local function openPopup()
     end
 
     if not defaultFound then
-        hs.alert.show("⚠ " .. CONFIG.defaultList .. " 리스트 없음, '" .. lists[1] .. "' 사용", 1.5)
+        hs.alert.show("⚠ " .. CONFIG.defaultList .. " 리스트 없음, '" .. lists[1] .. "' 사용",
+                      TOAST_STYLE, 1.5)
     end
 
     popup.open({
