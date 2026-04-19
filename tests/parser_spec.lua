@@ -183,6 +183,58 @@ test("@오전 9시 → next day (9am already passed)", function()
     assertEq(d.day, 21); assertEq(d.hour, 9)
 end)
 
+-- ========== 날짜 + 시간 조합 ==========
+
+test("@내일 3pm → tomorrow 15:00, not allday", function()
+    local r = parser.parse("보고서 @내일 3pm", FIXED_NOW)
+    local d = dateFields(r.date)
+    assertEq(d.day, 21); assertEq(d.hour, 15); assertEq(d.min, 0)
+    assertEq(r.allday, false, "allday")
+end)
+
+test("@tomorrow 9am → tomorrow 09:00", function()
+    local r = parser.parse("report @tomorrow 9am", FIXED_NOW)
+    local d = dateFields(r.date)
+    assertEq(d.day, 21); assertEq(d.hour, 9)
+    assertEq(r.allday, false)
+end)
+
+test("@월 10:30 → next Monday 10:30", function()
+    local r = parser.parse("회의 @월 10:30", FIXED_NOW)
+    local d = dateFields(r.date)
+    assertEq(d.day, 27); assertEq(d.hour, 10); assertEq(d.min, 30)
+    assertEq(r.allday, false)
+end)
+
+test("@오늘 오후 3시 → today 15:00", function()
+    local r = parser.parse("회의 @오늘 오후 3시", FIXED_NOW)
+    local d = dateFields(r.date)
+    assertEq(d.day, 20); assertEq(d.hour, 15)
+    assertEq(r.allday, false)
+end)
+
+test("@다음주 화 2pm → next Tuesday 14:00", function()
+    local r = parser.parse("회의 @다음주 화 2pm", FIXED_NOW)
+    local d = dateFields(r.date)
+    assertEq(d.day, 28); assertEq(d.hour, 14)
+    assertEq(r.allday, false)
+end)
+
+-- ========== Fallback ==========
+
+test("@garbage → keep original as name, no date", function()
+    local r = parser.parse("우유 @아무말", FIXED_NOW)
+    assertEq(r.name, "우유 @아무말", "name")
+    assertEq(r.date, nil, "date")
+    assertEq(r.allday, false)
+end)
+
+test("multiple @ → split on first; rest unparseable → fallback", function()
+    local r = parser.parse("보고서 @work @내일", FIXED_NOW)
+    assertEq(r.name, "보고서 @work @내일", "name")
+    assertEq(r.date, nil)
+end)
+
 print()
 print(string.format("passed: %d, failed: %d", passed, failed))
 if failed > 0 then os.exit(1) end

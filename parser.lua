@@ -114,34 +114,61 @@ local function todayOrTomorrow(now, hour, min)
     return candidate
 end
 
-local function parseDateExpr(dateExpr, now)
+-- Parse a date-only expression. Returns Unix timestamp or nil.
+local function parseDateOnly(dateExpr, now)
     local expr = string.lower(dateExpr)
 
     for token, offset in pairs(RELATIVE_DAYS) do
         if expr == token then
-            return { date = addDays(now, offset), allday = true }
+            return addDays(now, offset)
         end
     end
 
     local nextDow = expr:match("^다음주%s+(.+)$") or expr:match("^next%s+(.+)$")
     if nextDow then
         local wday = DOW[nextDow]
-        if wday then
-            return { date = nextWeekDow(now, wday), allday = true }
-        end
+        if wday then return nextWeekDow(now, wday) end
     end
 
     local wday = DOW[expr]
-    if wday then
-        return { date = comingDow(now, wday), allday = true }
+    if wday then return comingDow(now, wday) end
+
+    return nil
+end
+
+local function parseDateExpr(dateExpr, now)
+    -- Full expr as date only
+    local dateOnly = parseDateOnly(dateExpr, now)
+    if dateOnly then
+        return { date = dateOnly, allday = true }
     end
 
+    -- Full expr as time only
     local time = parseTime(dateExpr)
     if time then
         return {
             date = todayOrTomorrow(now, time.hour, time.min),
             allday = false,
         }
+    end
+
+    -- Date + time split on spaces: try each split position
+    local tokens = {}
+    for tok in dateExpr:gmatch("%S+") do
+        table.insert(tokens, tok)
+    end
+
+    for n = 1, #tokens - 1 do
+        local datePart = table.concat(tokens, " ", 1, n)
+        local timePart = table.concat(tokens, " ", n + 1)
+        local d = parseDateOnly(datePart, now)
+        local t = parseTime(timePart)
+        if d and t then
+            return {
+                date = setTime(d, t.hour, t.min),
+                allday = false,
+            }
+        end
     end
 
     return nil
