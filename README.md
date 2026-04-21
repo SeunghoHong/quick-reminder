@@ -1,6 +1,6 @@
 # Quick Reminder
 
-Hammerspoon 모듈: Shift 더블탭 → 팝업 입력 → macOS Reminders에 추가.
+Hammerspoon 모듈: Alt+R → 팝업 입력 → macOS Reminders에 추가.
 
 ## 요구사항
 
@@ -20,7 +20,7 @@ Hammerspoon 모듈: Shift 더블탭 → 팝업 입력 → macOS Reminders에 추
 
 ## 사용법
 
-- **Shift 더블탭** (빠르게 두 번): 팝업 열기
+- **Alt+R** (Option+R): 팝업 열기
 - 할 일 이름 입력 → **Enter**
 - **Tab / Shift+Tab**: 리스트 순환 (기본 `Work`)
 - **ESC**: 취소
@@ -59,5 +59,4 @@ lua tests/parser_spec.lua
 `init.lua` 상단의 `CONFIG` 테이블에서:
 
 - `defaultList` — 기본 리스트 (기본값: `"Work"`)
-- `doubleTapWindowMs` — 더블탭 인식 시간 (기본값: 200)
 - `toastDuration` — 토스트 표시 시간 (기본값: 1.2)

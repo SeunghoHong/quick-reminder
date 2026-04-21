@@ -2,7 +2,6 @@ local M = {}
 
 local CONFIG = {
     defaultList = "Work",
-    doubleTapWindowMs = 200,
     toastDuration = 1.2,
 }
 
@@ -89,8 +88,8 @@ local function openPopup()
 end
 
 function M.start()
-    trigger.start(openPopup, CONFIG.doubleTapWindowMs)
-    print("[quick-reminder] started — Ctrl×2 to open")
+    trigger.start(openPopup)
+    print("[quick-reminder] started — Alt+R to open")
 end
 
 function M.stop()
