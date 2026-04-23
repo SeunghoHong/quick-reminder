@@ -1,8 +1,8 @@
 local M = {}
 
 local CONFIG = {
-    width = 580,
-    height = 80,
+    width = 480,
+    height = 96,
 }
 
 local currentWebview = nil
