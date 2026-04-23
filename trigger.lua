@@ -4,7 +4,7 @@ local hotkey = nil
 
 function M.start(cb)
     if hotkey then hotkey:delete() end
-    hotkey = hs.hotkey.bind({ "alt" }, "r", cb)
+    hotkey = hs.hotkey.bind({ "shift" }, "space", cb)
 end
 
 function M.stop()

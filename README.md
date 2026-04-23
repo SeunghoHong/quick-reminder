@@ -1,6 +1,6 @@
 # Quick Reminder
 
-Hammerspoon 모듈: Alt+R → 팝업 입력 → macOS Reminders에 추가.
+Hammerspoon 모듈: Shift+Space → 팝업 입력 → macOS Reminders에 추가.
 
 ## 요구사항
 
@@ -20,7 +20,7 @@ Hammerspoon 모듈: Alt+R → 팝업 입력 → macOS Reminders에 추가.
 
 ## 사용법
 
-- **Alt+R** (Option+R): 팝업 열기
+- **Shift+Space**: 팝업 열기
 - 할 일 이름 입력 → **Enter**
 - **Tab / Shift+Tab**: 리스트 순환 (기본 `Work`)
 - **ESC**: 취소
