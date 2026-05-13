@@ -89,7 +89,7 @@ end
 
 function M.start()
     trigger.start(openPopup)
-    print("[quick-reminder] started — Alt+R to open")
+    print("[quick-reminder] started — Shift+Space to open")
 end
 
 function M.stop()
