@@ -34,8 +34,8 @@ end tell
 
     local result = {}
     for name in output:gmatch("([^,\n]+)") do
-        name = name:gsub("^%s+", ""):gsub("%s+$", "")
-        if name ~= "" then table.insert(result, name) end
+        local trimmed = name:gsub("^%s+", ""):gsub("%s+$", "")
+        if trimmed ~= "" then table.insert(result, trimmed) end
     end
     return result
 end
