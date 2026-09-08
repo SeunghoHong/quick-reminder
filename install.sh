@@ -5,7 +5,13 @@ REPO="https://github.com/SeunghoHong/quick-reminder.git"
 TARGET="$HOME/.hammerspoon/quick-reminder"
 # Version to install: `QR_REF=v0.1.0 ...` or `bash -s -- v0.1.0`. Empty = main.
 REF="${QR_REF:-${1:-}}"
-SOURCE="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd || true)"
+# Only a real script file counts as a local checkout; piped stdin has no BASH_SOURCE
+SCRIPT="${BASH_SOURCE[0]:-}"
+if [ -n "$SCRIPT" ] && [ -f "$SCRIPT" ]; then
+    SOURCE="$(cd "$(dirname "$SCRIPT")" && pwd)"
+else
+    SOURCE=""
+fi
 
 mkdir -p "$HOME/.hammerspoon"
 
