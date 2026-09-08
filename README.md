@@ -10,6 +10,20 @@ Hammerspoon 모듈: Shift+Space → 팝업 입력 → macOS Reminders에 추가.
 
 ## 설치
 
+원격 설치 (클론 불필요, 재실행하면 업데이트):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/SeunghoHong/quick-reminder/main/install.sh | bash
+```
+
+특정 버전 고정:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/SeunghoHong/quick-reminder/main/install.sh | bash -s -- v0.1.0
+```
+
+로컬 체크아웃에서 (심볼릭 링크, 개발용):
+
 ```bash
 ./install.sh
 ```
@@ -17,6 +31,24 @@ Hammerspoon 모듈: Shift+Space → 팝업 입력 → macOS Reminders에 추가.
 1. Hammerspoon 앱을 열고 **Accessibility** 권한 부여
 2. Hammerspoon 메뉴 → **Reload Config**
 3. 첫 저장 시 **Automation → Reminders** 권한 요청 → 허용
+
+### 삭제
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/SeunghoHong/quick-reminder/main/uninstall.sh | bash
+```
+
+설치 방식에 따라 심볼릭 링크 또는 클론을 지우고, `~/.hammerspoon/init.lua`의 `require` 줄을 제거합니다.
+심볼릭 링크였다면 원본 체크아웃은 그대로 둡니다.
+
+## 릴리스
+
+`v` 로 시작하는 태그를 푸시하면 GitHub Actions가 파서 테스트를 돌린 뒤 릴리스를 만듭니다.
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
 
 ## 사용법
 
