@@ -1,21 +1,47 @@
 #!/bin/bash
 set -euo pipefail
 
-SOURCE="$(cd "$(dirname "$0")" && pwd)"
+REPO="https://github.com/SeunghoHong/quick-reminder.git"
 TARGET="$HOME/.hammerspoon/quick-reminder"
-
-if [ -e "$TARGET" ] && [ ! -L "$TARGET" ]; then
-    echo "Error: $TARGET exists and is not a symlink. Remove it first."
-    exit 1
-fi
-
-if [ -L "$TARGET" ]; then
-    rm "$TARGET"
-fi
+# Version to install: `QR_REF=v0.1.0 ...` or `bash -s -- v0.1.0`. Empty = main.
+REF="${QR_REF:-${1:-}}"
+SOURCE="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd || true)"
 
 mkdir -p "$HOME/.hammerspoon"
-ln -s "$SOURCE" "$TARGET"
-echo "Linked: $TARGET → $SOURCE"
+
+if [ -n "$SOURCE" ] && [ -f "$SOURCE/init.lua" ]; then
+    # Local checkout: symlink it
+    if [ -e "$TARGET" ] && [ ! -L "$TARGET" ]; then
+        echo "Error: $TARGET exists and is not a symlink. Run uninstall.sh first."
+        exit 1
+    fi
+    [ -L "$TARGET" ] && rm "$TARGET"
+    ln -s "$SOURCE" "$TARGET"
+    echo "Linked: $TARGET → $SOURCE"
+else
+    # Remote install: clone or update
+    if [ -L "$TARGET" ]; then
+        echo "Error: $TARGET is a symlink to a local checkout. Run uninstall.sh first."
+        exit 1
+    fi
+    if [ -d "$TARGET/.git" ]; then
+        git -C "$TARGET" fetch --tags --prune origin
+        if [ -n "$REF" ]; then
+            git -C "$TARGET" checkout -q --detach "$REF"
+        else
+            git -C "$TARGET" checkout -q main
+            git -C "$TARGET" merge --ff-only origin/main
+        fi
+        echo "Updated: $TARGET"
+    elif [ -e "$TARGET" ]; then
+        echo "Error: $TARGET exists and is not a git clone. Remove it first."
+        exit 1
+    else
+        git clone ${REF:+--branch "$REF"} "$REPO" "$TARGET"
+        echo "Cloned: $TARGET"
+    fi
+    echo "Version: $(git -C "$TARGET" describe --tags --always)"
+fi
 
 HS_INIT="$HOME/.hammerspoon/init.lua"
 if ! grep -q 'require("quick-reminder")' "$HS_INIT" 2>/dev/null; then
